@@ -4,6 +4,8 @@ Staff-only school schedule for Isha Independent School (McMinnville, TN).
 
 **Live page:** https://ashwinmatta.github.io/iiis-school-schedule/
 
+**Help:** https://ashwinmatta.github.io/iiis-school-schedule/help/
+
 This is a static HTML file. GitHub Pages on a personal account is a public URL. Access is limited the same way as the previous Netlify site: a **staff access password** on the page (`IIIS2026`). `robots.txt` asks search engines not to index it.
 
 ## Share with staff

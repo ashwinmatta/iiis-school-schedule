@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IIIS Schedule — Publisher / Site Admin Guide</title>
+  <style>
+    :root {
+      --navy: #1B2A4A; --navy2: #121C33; --teal: #0F766E; --teal2: #0D9488;
+      --slate: #334155; --muted: #64748B; --line: #E2E8F0; --bg: #F8FAFC; --paper: #fff;
+      --amber: #92400E; --amber-bg: #FEF3C7; --red: #991B1B; --red-bg: #FEE2E2;
+      --green: #166534; --green-bg: #DCFCE7; --blue: #1D4ED8; --blue-bg: #DBEAFE;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+      color: var(--slate); background: var(--bg); line-height: 1.5; font-size: 15.5px;
+    }
+    a { color: var(--teal); }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 20px 16px 56px; }
+
+    #gate {
+      position: fixed; inset: 0; z-index: 99999; display: grid; place-items: center; padding: 24px;
+      background: linear-gradient(160deg, #1C1917, #44403C 55%, #0F766E);
+      color: #fff;
+    }
+    .gate-card {
+      width: min(440px, 100%); background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2); border-radius: 16px; padding: 28px 24px;
+    }
+    .gate-card h1 { margin: 0 0 8px; font-size: 1.25rem; }
+    .gate-card p { margin: 0 0 14px; color: #D6D3D1; font-size: .92rem; }
+    .gate-card label { display: block; font-size: .78rem; color: #A8A29E; margin-bottom: 6px; }
+    .gate-card input {
+      width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #57534E;
+      background: #0C0A09; color: #FAFAF9; font-size: 1rem;
+    }
+    .gate-card button {
+      margin-top: 12px; width: 100%; padding: 12px; border: 0; border-radius: 10px;
+      background: var(--teal); color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer;
+    }
+    .err { color: #FECACA; margin-top: 10px; min-height: 1.2em; font-size: .88rem; }
+    body.locked { overflow: hidden; }
+    body.locked > :not(#gate) { visibility: hidden !important; }
+
+    .hero {
+      background: var(--navy2); color: #fff; border-radius: 16px; padding: 24px; margin-bottom: 16px;
+    }
+    .hero .eyebrow { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: #A8A29E; font-weight: 700; }
+    .hero h1 { margin: 8px 0; font-size: 1.55rem; }
+    .hero p { margin: 0; color: #D6D3D1; }
+
+    .roles {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px;
+    }
+    @media (max-width: 800px) { .roles { grid-template-columns: 1fr; } }
+    .role {
+      background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 14px;
+    }
+    .role h3 { margin: 0 0 6px; font-size: .95rem; color: var(--navy); }
+    .role p { margin: 0; font-size: .86rem; color: var(--muted); }
+    .tag { display: inline-block; font-size: .68rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; margin-bottom: 8px; }
+    .tag.pub { background: #FFEDD5; color: #9A3412; }
+    .tag.sched { background: var(--green-bg); color: var(--green); }
+    .tag.view { background: var(--blue-bg); color: var(--blue); }
+
+    .card {
+      background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
+      padding: 18px; margin-bottom: 14px;
+    }
+    .card h2 { margin: 0 0 10px; font-size: 1.15rem; color: var(--navy); border-bottom: 2px solid var(--teal); padding-bottom: 6px; }
+    .card h3 { margin: 14px 0 8px; font-size: 1rem; color: var(--teal); }
+    ul, ol { margin: 0 0 8px; padding-left: 1.2rem; }
+    li { margin: 5px 0; }
+    .muted { color: var(--muted); font-size: .9rem; }
+    .callout { border-radius: 10px; padding: 10px 12px; margin: 10px 0; font-size: .9rem; }
+    .callout.info { background: var(--blue-bg); color: #1E3A8A; }
+    .callout.warn { background: var(--amber-bg); color: var(--amber); }
+    .callout.danger { background: var(--red-bg); color: var(--red); }
+    .callout.ok { background: var(--green-bg); color: #14532D; }
+    table { width: 100%; border-collapse: collapse; font-size: .88rem; margin: 8px 0; }
+    th, td { border: 1px solid var(--line); padding: 8px 9px; text-align: left; vertical-align: top; }
+    th { background: var(--navy); color: #fff; }
+    tr:nth-child(even) td { background: #F8FAFC; }
+    .steps { counter-reset: step; list-style: none; padding: 0; margin: 0; }
+    .steps li {
+      counter-increment: step; position: relative; padding: 10px 10px 10px 48px;
+      border: 1px solid var(--line); border-radius: 12px; background: #F8FAFC; margin: 0 0 8px;
+    }
+    .steps li::before {
+      content: counter(step); position: absolute; left: 12px; top: 10px;
+      width: 26px; height: 26px; border-radius: 50%; background: var(--teal); color: #fff;
+      font-weight: 800; font-size: .85rem; display: grid; place-items: center;
+    }
+    code, .path {
+      font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .82rem;
+      background: #EEF2FF; padding: 1px 6px; border-radius: 6px;
+    }
+    pre {
+      background: #0F172A; color: #E2E8F0; border-radius: 12px; padding: 14px;
+      overflow-x: auto; font-size: .8rem; line-height: 1.45;
+    }
+    footer { margin-top: 20px; color: var(--muted); font-size: .82rem; }
+    .back { display: inline-block; margin-bottom: 12px; font-weight: 650; }
+  </style>
+</head>
+<body>
+  <div id="gate">
+    <div class="gate-card">
+      <h1>Publisher / Site Admin Guide</h1>
+      <p>For the person who works with Grok Build to update HTML and republish to Netlify. Not for everyday schedule editing.</p>
+      <label for="pw">Publisher password</label>
+      <input id="pw" type="password" autocomplete="current-password" autofocus />
+      <button type="button" id="go">Open publisher guide</button>
+      <div class="err" id="err"></div>
+      <p style="margin-top:12px;font-size:.8rem;color:#A8A29E;">Password hint: <code style="background:#292524;color:#FDBA74;">publish</code></p>
+    </div>
+  </div>
+
+  <div class="wrap" id="app">
+    <a class="back" href="./">← Back to staff Help guides</a>
+
+    <header class="hero">
+      <div class="eyebrow">Isha School · IIIS · Technical publishing</div>
+      <h1>Publisher / Site Admin Guide</h1>
+      <p>How to back up, update the hosted HTML with Grok Build, and republish to Netlify — and when that work is required.</p>
+    </header>
+
+    <div class="roles">
+      <div class="role">
+        <span class="tag view">Viewers / Teachers</span>
+        <h3>Read the schedule</h3>
+        <p>Use the live site. Do not edit or redeploy.</p>
+      </div>
+      <div class="role">
+        <span class="tag sched">Schedule Admin</span>
+        <h3>Change timetable data</h3>
+        <p>Unlock the app, edit assignments/people/absences. Ask Publisher when school-wide publish is needed.</p>
+      </div>
+      <div class="role">
+        <span class="tag pub">Publisher / Site Admin</span>
+        <h3>Host &amp; publish</h3>
+        <p>Backup files, work with Grok Build, replace <code>index.html</code>, redeploy Netlify.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>1. Why publishing exists</h2>
+      <p>The live schedule at <a href="https://ashwinmatta.github.io/iiis-school-schedule/" target="_blank" rel="noopener">ashwinmatta.github.io/iiis-school-schedule</a> is a <strong>static hosted HTML file</strong>.</p>
+      <ul>
+        <li>When someone edits in the browser, changes often stay in <strong>that browser’s localStorage</strong> first.</li>
+        <li>Other staff still see the <strong>last published</strong> Netlify version until you redeploy.</li>
+        <li>So: <strong>Schedule Admin edits data</strong> → <strong>Publisher publishes</strong> when everyone must see it.</li>
+      </ul>
+      <div class="callout warn">If nobody republishes, the school can think the site is “wrong” even though one admin’s browser looks updated.</div>
+    </div>
+
+    <div class="card">
+      <h2>2. When must you backup / update HTML / republish?</h2>
+      <table>
+        <thead>
+          <tr><th>Situation</th><th>Backup?</th><th>Update HTML + republish?</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Schedule Admin changed assignments, teachers, absences, holidays, HP windows and staff must all see it</td>
+            <td><strong>Yes</strong></td>
+            <td><strong>Yes — required</strong></td>
+          </tr>
+          <tr>
+            <td>New week cloned / template refreshed for school-wide use</td>
+            <td>Yes</td>
+            <td><strong>Yes</strong></td>
+          </tr>
+          <tr>
+            <td>Grok Build changed app features, password gate, help text, or preloaded datasets</td>
+            <td>Yes</td>
+            <td><strong>Yes</strong></td>
+          </tr>
+          <tr>
+            <td>Help guide content updated (this Help site)</td>
+            <td>Optional but recommended</td>
+            <td><strong>Yes</strong> (help site deploy)</td>
+          </tr>
+          <tr>
+            <td>Someone only viewed the schedule / exported PDF</td>
+            <td>No</td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td>Schedule Admin is testing alone and does not want others to see yet</td>
+            <td>Recommended before big experiments</td>
+            <td><strong>No</strong> until ready</td>
+          </tr>
+          <tr>
+            <td>Broken live site / bad deploy</td>
+            <td>Use last good backup</td>
+            <td><strong>Yes — rollback republish</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Simple rule</h3>
+      <div class="callout ok">
+        <strong>Republish whenever the “source of truth for everyone” must change.</strong>
+        Viewing never needs a republish. School-wide data or app-file changes always do.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3. What to back up (and where)</h2>
+      <p>Keep dated copies before every production deploy. The live app holds <strong>one school year</strong> only; see project file <code>docs/YEAR-CYCLE.md</code> for clone/backup cadence and how to start the next year without merging last year’s weeks.</p>
+      <ul>
+        <li><code>IshaSchoolSchedule-YYYY-MM-DD.html</code> — full app file (from Download full HTML or deploy folder)</li>
+        <li><code>schedule-YYYY-MM-DD.json</code> — optional JSON export from the app File panel</li>
+        <li>Help site folder snapshot if Help content changed</li>
+      </ul>
+      <p class="muted">Suggested folders:</p>
+      <ul>
+        <li>Working deploy: <code>~/Downloads/iiis-schedule-deploy/index.html</code></li>
+        <li>Help deploy: <code>~/Downloads/iiis-schedule-help-deploy/</code></li>
+        <li>Project copy: <code>…/School Schedule/IshaSchoolSchedule.html</code></li>
+        <li>Backups: create <code>…/School Schedule/backups/</code> and store dated files there</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>4. End-to-end publish workflow (with Grok Build)</h2>
+
+      <h3>A. Get the latest schedule HTML from Schedule Admin</h3>
+      <ol class="steps">
+        <li>Schedule Admin unlocks the live app and finishes edits.</li>
+        <li>They click <strong>Download full HTML</strong> (and ideally <strong>Download JSON</strong> too).</li>
+        <li>They send you those files (or save into a shared Drive folder).</li>
+      </ol>
+
+      <h3>B. Prepare the deploy file (critical)</h3>
+      <ol class="steps">
+        <li>Backup the current live deploy file first.</li>
+        <li>Replace <code>~/Downloads/iiis-schedule-deploy/index.html</code> with the new HTML.</li>
+        <li><strong>Keep the filename exactly</strong> <code>index.html</code>.</li>
+        <li>Confirm the staff lock screen / password gate is still present (search for <code>siteGate</code> or the staff password prompt). If the downloaded HTML lost the gate, ask Grok Build to re-inject it before publish.</li>
+      </ol>
+      <div class="callout danger">Never deploy a file that removes the staff password gate unless leadership explicitly asks to go public again.</div>
+
+      <h3>C. Ask Grok Build when needed</h3>
+      <p>Use Grok Build for publisher tasks such as:</p>
+      <ul>
+        <li>Re-applying the staff password gate after a raw HTML download</li>
+        <li>Preloading HP-approved windows / roster metadata into the HTML</li>
+        <li>Updating Help / Publisher guides</li>
+        <li>Fixing deploy scripts and running <code>netlify deploy</code></li>
+        <li>Rolling back to a dated backup</li>
+      </ul>
+      <p>Example prompts you can paste to Grok Build:</p>
+      <pre>Backup current iiis-schedule-deploy/index.html to School Schedule/backups with today’s date.
+Replace deploy index.html with the Schedule Admin’s downloaded HTML.
+Re-inject the staff password gate (IIIS2026) if missing.
+Redeploy Netlify site iiis-school-schedule to production.
+Tell me the live URL and confirm the gate is present.</pre>
+
+      <h3>D. Redeploy to Netlify (production)</h3>
+      <ol class="steps">
+        <li>Open Terminal.</li>
+        <li>Run the production deploy for the schedule site:</li>
+      </ol>
+      <pre>cd ~/Downloads/iiis-schedule-deploy
+../node_modules/.bin/netlify deploy --prod --dir=. --site 9ca2eaad-9d45-4f47-a870-dba701ef4ea9</pre>
+      <ol class="steps" start="3">
+        <li>Wait for “Deploy is live!”</li>
+        <li>Open a private/incognito window → https://ashwinmatta.github.io/iiis-school-schedule/</li>
+        <li>Confirm: lock screen works, schedule data looks correct, Unlock still works for Schedule Admin.</li>
+      </ol>
+
+      <h3>E. Help site deploy (only when Help/Publisher docs change)</h3>
+      <pre>cd ~/Downloads/iiis-schedule-help-deploy
+../node_modules/.bin/netlify deploy --prod --dir=. --site 0bbda351-233b-4762-a5ac-04c0422994e7</pre>
+      <p class="muted">Help URL: https://ashwinmatta.github.io/iiis-school-schedule/help/</p>
+    </div>
+
+    <div class="card">
+      <h2>5. What Grok Build should update vs leave alone</h2>
+      <table>
+        <thead><tr><th>Update via Grok / Publisher</th><th>Usually leave to Schedule Admin</th></tr></thead>
+        <tbody>
+          <tr><td>Hosted <code>index.html</code> on Netlify</td><td>Day-to-day assignment edits inside unlocked app</td></tr>
+          <tr><td>Password gates on hosted sites</td><td>Choosing which teacher covers a block</td></tr>
+          <tr><td>Help &amp; Publisher documentation</td><td>Marking absences/holidays</td></tr>
+          <tr><td>Preloading HP windows into the file (batch)</td><td>One-off window tweaks in Teachers dialog (then publish)</td></tr>
+          <tr><td>Rollback from backups</td><td>Pedagogical schedule decisions</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>6. Cadence suggestions</h2>
+      <ul>
+        <li><strong>Whenever Schedule Admin says “please publish”</strong> — same day</li>
+        <li><strong>Before each major week rollout</strong> (e.g. new term week template) — backup + publish</li>
+        <li><strong>After any Grok feature change</strong> — backup + publish + smoke test</li>
+        <li><strong>Weekly</strong> — optional JSON/HTML backup even if no publish happened</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>7. Smoke-test checklist after every publish</h2>
+      <ul>
+        <li>Staff lock screen appears</li>
+        <li>Correct week data visible in Day-wise and Teachers views</li>
+        <li>Schedule Admin Unlock still works</li>
+        <li>Non-full-time HP blocking still works (spot-check one known teacher if relevant)</li>
+        <li>Help site still loads (if you also deployed help)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>8. Live URLs &amp; Netlify project IDs</h2>
+      <table>
+        <thead><tr><th>Site</th><th>URL</th><th>Netlify site id</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Schedule app</td>
+            <td><code>https://ashwinmatta.github.io/iiis-school-schedule/</code></td>
+            <td><code>9ca2eaad-9d45-4f47-a870-dba701ef4ea9</code></td>
+          </tr>
+          <tr>
+            <td>Help guides</td>
+            <td><code>https://ashwinmatta.github.io/iiis-school-schedule/help/</code></td>
+            <td><code>0bbda351-233b-4762-a5ac-04c0422994e7</code></td>
+          </tr>
+          <tr>
+            <td>This publisher guide</td>
+            <td><code>https://ashwinmatta.github.io/iiis-school-schedule/help/publisher.html</code></td>
+            <td>(same help site)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>9. Password layers (do not mix)</h2>
+      <table>
+        <thead><tr><th>Layer</th><th>Password</th><th>Audience</th></tr></thead>
+        <tbody>
+          <tr><td>Schedule + Help staff lock screens</td><td><code>IIIS2026</code></td><td>All staff</td></tr>
+          <tr><td>Help → Admins section</td><td><code>admin</code></td><td>Schedule Admin guide</td></tr>
+          <tr><td>Publisher guide (this page)</td><td><code>publish</code></td><td>Site / publisher admin</td></tr>
+          <tr><td>Schedule app Unlock PIN</td><td>(schedule admin PIN in app)</td><td>Schedule Admin only</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    
+    <div class="card">
+      <h2>10. Free-tier usage visibility (stay on Free)</h2>
+      <p>Before every production deploy, run the usage report so we do not burn the 300 monthly credits.</p>
+      <pre>python3 ~/Downloads/iiis-schedule-deploy/netlify_usage_report.py
+python3 ~/Downloads/iiis-schedule-deploy/netlify_usage_report.py --before-deploy schedule
+python3 ~/Downloads/iiis-schedule-deploy/safe_netlify_deploy.sh schedule "reason"</pre>
+      <ul>
+        <li>Free plan = <strong>hard limit</strong> (sites pause at 0). Keep <strong>auto top-up OFF</strong>.</li>
+        <li>Each production deploy costs <strong>15 credits</strong>.</li>
+        <li>Ask Grok Build to print usage before/after any Netlify update.</li>
+        <li>Docs/log: <code>School Schedule/netlify-usage/</code></li>
+      </ul>
+    </div>
+
+    <footer>
+      Isha School · Publisher / Site Admin Guide · For technical publishing with Grok Build + Netlify
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      var KEY = "iiis-publisher-v1";
+      var PW = "publish";
+      function unlocked() {
+        try { return sessionStorage.getItem(KEY) === "1"; } catch (e) { return false; }
+      }
+      function unlock() {
+        try { sessionStorage.setItem(KEY, "1"); } catch (e) {}
+        document.body.classList.remove("locked");
+        var g = document.getElementById("gate");
+        if (g) g.remove();
+      }
+      if (unlocked()) {
+        document.getElementById("gate").remove();
+      } else {
+        document.body.classList.add("locked");
+        function go() {
+          var v = (document.getElementById("pw").value || "").trim().toLowerCase();
+          if (v === PW) { unlock(); return; }
+          document.getElementById("err").textContent = "Wrong password. Try: publish";
+          document.getElementById("pw").focus();
+        }
+        document.getElementById("go").onclick = go;
+        document.getElementById("pw").onkeydown = function (e) { if (e.key === "Enter") go(); };
+      }
+    })();
+  </script>
+</body>
+</html>
